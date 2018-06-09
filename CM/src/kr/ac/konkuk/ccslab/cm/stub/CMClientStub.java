@@ -18,6 +18,7 @@ import kr.ac.konkuk.ccslab.cm.event.CMMultiServerEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMSNSEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMSessionEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMDataEvent;
+import kr.ac.konkuk.ccslab.cm.event.CMEventSynchronizer;
 import kr.ac.konkuk.ccslab.cm.info.CMConfigurationInfo;
 import kr.ac.konkuk.ccslab.cm.info.CMEventInfo;
 import kr.ac.konkuk.ccslab.cm.info.CMInfo;
@@ -230,14 +231,17 @@ public class CMClientStub extends CMStub {
 	 * 
 	 * @param strUserName - the user name
 	 * @param strPassword - the password
+	 * @return true if the request is successfully sent to the server; false otherwise.
+	 * @see CMClientStub#syncLoginCM(String, String)
 	 * @see CMClientStub#loginCM(String, String, String)
 	 * @see CMClientStub#logoutCM()
 	 * @see CMClientStub#registerUser(String, String)
 	 * 
 	 */
-	public void loginCM(String strUserName, String strPassword)
+	public boolean loginCM(String strUserName, String strPassword)
 	{
 		CMConfigurationInfo confInfo = m_cmInfo.getConfigurationInfo();
+		boolean bRequestResult = false;
 		
 		// check local state
 		int nUserState = getMyself().getState();
@@ -250,13 +254,10 @@ public class CMClientStub extends CMStub {
 		
 		switch( nUserState )
 		{
-		//case CMInfo.CM_INIT:
-			//System.out.println("You should connect to the default server before login.\n"); 
-			//return;
 		case CMInfo.CM_LOGIN:
 		case CMInfo.CM_SESSION_JOIN:
-			System.out.println("You already logged on the default server.\n"); 
-			return;
+			System.out.println("You already logged in to the default server."); 
+			return false;
 		}
 		
 		String strMyAddr = confInfo.getMyAddress();		// client IP address
@@ -278,10 +279,52 @@ public class CMClientStub extends CMStub {
 		myself.setUDPPort(nMyUDPPort);
 		
 		// send the event
-		send(se, "SERVER");
+		bRequestResult = send(se, "SERVER");
 		se = null;
 		
-		return;
+		return bRequestResult;
+	}
+	
+	/**
+	 * Logs in to the default server synchronously.
+	 * 
+	 * <p> Unlike the asynchronous login method ({@link CMClientStub#loginCM(String, String)}), 
+	 * this method makes the main thread of the client block its execution until it receives and 
+	 * returns the reply event (CMSessionEvent.LOGIN_ACK) from the default server.
+	 * <br> For the other detailed information of the login process, please refer to 
+	 * the asynchronous login method.
+	 * 
+	 * @param strUserName - the user name
+	 * @param strPassword - the password
+	 * @return the reply event (CMSessionEvent.LOGIN_ACK) from the default server.
+	 * @see CMClientStub#loginCM(String, String)
+	 */
+	public CMSessionEvent syncLoginCM(String strUserName, String strPassword)
+	{
+		CMEventSynchronizer eventSync = m_cmInfo.getEventInfo().getEventSynchronizer();
+		CMSessionEvent loginAckEvent = null;
+		boolean bRequestResult = false;
+		
+		bRequestResult = loginCM(strUserName, strPassword);
+		if(!bRequestResult) return null;
+		
+		eventSync.setWaitingEvent(CMInfo.CM_SESSION_EVENT, CMSessionEvent.LOGIN_ACK);
+		synchronized(eventSync)
+		{
+			while(loginAckEvent == null)
+			{
+				try {
+					eventSync.wait(30000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				loginAckEvent = (CMSessionEvent) eventSync.getReplyEvent();
+			}
+		}
+		eventSync.init();
+		
+		return loginAckEvent;
 	}
 	
 	/**
@@ -312,21 +355,23 @@ public class CMClientStub extends CMStub {
 	 * </tr>
 	 * </table>
 	 * 
+	 * @return true if successfully sent the logout request, false otherwise.
 	 * @see CMClientStub#loginCM(String, String)
 	 * @see CMClientStub#deregisterUser(String, String)
 	 */
-	public void logoutCM()
+	public boolean logoutCM()
 	{
 		CMInteractionInfo interInfo = m_cmInfo.getInteractionInfo();
+		boolean bRequestResult = false;
 		
 		// check state of the local user
 		CMUser myself = getMyself();
 		switch(myself.getState())
 		{
 		case CMInfo.CM_INIT:
-			System.out.println("You should connect and log in to the default server."); return;
+			System.out.println("You should connect and log in to the default server."); return false;
 		case CMInfo.CM_CONNECT:
-			System.out.println("You should log in to the default server."); return;
+			System.out.println("You should log in to the default server."); return false;
 		}
 		
 		// terminate current group info (multicast channel, group member, Membership key)
@@ -340,15 +385,17 @@ public class CMClientStub extends CMStub {
 		CMSessionEvent se = new CMSessionEvent();
 		se.setID(CMSessionEvent.LOGOUT);
 		se.setUserName(myself.getName());
-		send(se, "SERVER");
+		bRequestResult = send(se, "SERVER");
 		
 		// update local state
 		myself.setState(CMInfo.CM_CONNECT);
-		
-		System.out.println("["+myself.getName()+"] logs out the default server.");
+		if(bRequestResult)
+			System.out.println("["+myself.getName()+"] successfully sent the logout request to the default server.");
+		else
+			System.err.println("["+myself.getName()+"] failed the logout request!");
 		
 		se = null;
-		return;
+		return bRequestResult;
 	}
 	
 	/**
@@ -388,30 +435,73 @@ public class CMClientStub extends CMStub {
 	 * </tr>
 	 * </table>
 	 * 
+	 * @return true if the request is successfully sent to the server; false otherwise.
+	 * @see CMClientStub#syncRequestSessionInfo()
 	 * @see CMClientStub#joinSession(String)
 	 * @see CMClientStub#joinSession(String, String)
 	 */
 	// request available session information from the default server
-	public void requestSessionInfo()
+	public boolean requestSessionInfo()
 	{
+		boolean bRequestResult = false;
 		
 		// check local state
 		int nUserState = getMyself().getState();
 		if(nUserState == CMInfo.CM_INIT || nUserState == CMInfo.CM_CONNECT)
 		{
 			System.out.println("CMClientStub.requestSessionInfo(), you should log in to the default server.");
-			return;
+			return false;
 		}
 		
 		CMSessionEvent se = new CMSessionEvent();
 		se.setID(CMSessionEvent.REQUEST_SESSION_INFO);
 		se.setUserName(getMyself().getName());
-		send(se, "SERVER");
+		bRequestResult = send(se, "SERVER");
 		
 		if(CMInfo._CM_DEBUG)
 			System.out.println("CMClientStub.requestSessionInfo(), end.");
 		se = null;
-		return;
+		return bRequestResult;
+	}
+	
+	/**
+	 * Requests available session information from the default server synchronously.
+	 * 
+	 * <p> Unlike the asynchronous method ({@link CMClientStub#requestSessionInfo()}), this method makes 
+	 * the main thread of the client block its execution until it receives and returns the reply event 
+	 * (CMSessionEvent.RESPONSE_SESSION_INFO) from the default server.
+	 * <br> For the other detailed information of the session-information-request process, 
+	 * please refer to the asynchronous version of the request. 
+	 * 
+	 * @return the reply event (CMSessionEvent.RESPONSE_SESSION_INFO) from the default server.
+	 * @see CMClientStub#requestSessionInfo()
+	 */
+	public CMSessionEvent syncRequestSessionInfo()
+	{
+		CMEventSynchronizer eventSync = m_cmInfo.getEventInfo().getEventSynchronizer();
+		CMSessionEvent replyEvent = null;
+		boolean bRequestResult = false;
+		
+		bRequestResult = requestSessionInfo();
+		if(!bRequestResult) return null;
+		
+		eventSync.setWaitingEvent(CMInfo.CM_SESSION_EVENT, CMSessionEvent.RESPONSE_SESSION_INFO);
+		synchronized(eventSync)
+		{
+			while(replyEvent == null)
+			{
+				try {
+					eventSync.wait(30000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				replyEvent = (CMSessionEvent) eventSync.getReplyEvent();
+			}
+		}
+		eventSync.init();
+		
+		return replyEvent;
 	}
 
 	/**
@@ -539,23 +629,26 @@ public class CMClientStub extends CMStub {
 	 * 
 	 * 
 	 * @param sname - the session name that a client requests to join
+	 * @return true if the request is successful; false otherwise.
+	 * @see CMClientStub#syncJoinSession(String)
 	 * @see CMClientStub#joinSession(String, String)
 	 * @see CMClientStub#leaveSession()
 	 * @see CMClientStub#leaveSession(String)
 	 */
-	public void joinSession(String sname)
+	public boolean joinSession(String sname)
 	{
 		CMInteractionInfo interInfo = m_cmInfo.getInteractionInfo();
+		boolean bResult = false;
 		
 		// check local state
 		switch( getMyself().getState() )
 		{
 		case CMInfo.CM_INIT:
-			System.out.println("You should connect and login server before session join.\n"); return;
+			System.out.println("You should connect and login server before session join.\n"); return false;
 		case CMInfo.CM_CONNECT:
-			System.out.println("You should login server before session join..\n"); return;
+			System.out.println("You should login server before session join..\n"); return false;
 		case CMInfo.CM_SESSION_JOIN:
-			System.out.println("You have already joined a session.\n"); return;
+			System.out.println("You have already joined a session.\n"); return false;
 		}
 		
 		// check selected session
@@ -563,7 +656,7 @@ public class CMClientStub extends CMStub {
 		{
 			System.out.println("session("+sname+") not found. You can request session information"
 					+" from the default server.");
-			return;
+			return false;
 		}
 
 		// make and send an event
@@ -572,11 +665,52 @@ public class CMClientStub extends CMStub {
 		se.setHandlerSession(sname);
 		se.setUserName(getMyself().getName());
 		se.setSessionName(sname);
-		send(se, "SERVER");
+		bResult = send(se, "SERVER");
 		getMyself().setCurrentSession(sname);
 		
 		se = null;
-		return;
+		return bResult;
+	}
+	
+	/**
+	 * Joins a session in the default server synchronously.
+	 * 
+	 * <p> Unlike the asynchronous method ({@link CMClientStub#joinSession(String)}), this method makes 
+	 * the main thread of the client block its execution until it receives and returns the reply event 
+	 * (CMSessionEvent.JOIN_SESSION_ACK) from the default server.
+	 * <br> For the other detailed information of the session-join process, please refer to the asynchronous 
+	 * version of the request.  
+	 * 
+	 * @param sname - the session name that a client requests to join
+	 * @return the reply event (CMSessionEvent.JOIN_SESSION_ACK) from the default server, null if the request fails.
+	 * @see CMClientStub#joinSession(String)
+	 */
+	public CMSessionEvent syncJoinSession(String sname)
+	{
+		CMEventSynchronizer eventSync = m_cmInfo.getEventInfo().getEventSynchronizer();
+		CMSessionEvent replyEvent = null;
+		boolean bRequestResult = false;
+		
+		bRequestResult = joinSession(sname);
+		if(!bRequestResult) return null;
+		
+		eventSync.setWaitingEvent(CMInfo.CM_SESSION_EVENT, CMSessionEvent.JOIN_SESSION_ACK);
+		synchronized(eventSync)
+		{
+			while(replyEvent == null)
+			{
+				try {
+					eventSync.wait(30000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				replyEvent = (CMSessionEvent) eventSync.getReplyEvent();
+			}
+		}
+		eventSync.init();
+		
+		return replyEvent;		
 	}
 	
 	/**
@@ -622,24 +756,26 @@ public class CMClientStub extends CMStub {
 	 * If the session name field of this event is an empty space, a client can know that the user leaves 
 	 * his/her current session. 
 	 * 
+	 * @return true if successfully sent the leave-session request, false otherwise.
 	 * @see CMClientStub#leaveSession(String)
 	 * @see CMClientStub#joinSession(String)
 	 * @see CMClientStub#joinSession(String, String)
 	 */
-	public void leaveSession()
+	public boolean leaveSession()
 	{
+		boolean bRequestResult = false;
 		CMUser myself = getMyself();
 		// check local state
 		switch(myself.getState())
 		{
 		case CMInfo.CM_INIT:
 			System.out.println("You should connect, log in to the default server, and join a session."); 
-			return;
+			return false;
 		case CMInfo.CM_CONNECT:
 			System.out.println("You should log in to the default server and join a session.");
-			return;
+			return false;
 		case CMInfo.CM_LOGIN:
-			System.out.println("You should join a session."); return;
+			System.out.println("You should join a session."); return false;
 		}
 		
 		// terminate current group info (multicast channel, group member, Membership key)
@@ -651,15 +787,18 @@ public class CMClientStub extends CMStub {
 		se.setHandlerSession(myself.getCurrentSession());
 		se.setUserName(myself.getName());
 		se.setSessionName(myself.getCurrentSession());
-		send(se, "SERVER");
+		bRequestResult = send(se, "SERVER");
 		
 		// update the local state
 		myself.setState(CMInfo.CM_LOGIN);
 		
-		System.out.println("["+myself.getName()+"] leaves session("+myself.getCurrentSession()+").");
+		if(bRequestResult)
+			System.out.println("["+myself.getName()+"] successfully requested to leave session("+myself.getCurrentSession()+").");
+		else
+			System.err.println("["+myself.getName()+"] failed the leave-session request!");
 		
 		se = null;
-		return;
+		return bRequestResult;
 	}
 	
 	/**
@@ -1010,6 +1149,8 @@ public class CMClientStub extends CMStub {
 		SocketChannel sc = null;
 		CMChannelInfo<Integer> scInfo = null;
 		CMEventInfo eInfo = m_cmInfo.getEventInfo();
+		CMEventSynchronizer eventSync = eInfo.getEventSynchronizer();
+		CMSessionEvent replyEvent = null;
 		int nReturnCode = -1;
 		
 		if(getMyself().getState() == CMInfo.CM_INIT || getMyself().getState() == CMInfo.CM_CONNECT)
@@ -1058,39 +1199,34 @@ public class CMClientStub extends CMStub {
 			return null;
 		}
 
-		synchronized(eInfo.getANBSCAObject())
-		{
-			/*
-			 * This statement is required because the ack event of adding a blocking socket channel
-			 * can set the ANBSCAReturnCode value.
-			 */
-			eInfo.setANBSCAReturnCode(-1);
-		}
+		eventSync.setWaitingEvent(CMInfo.CM_SESSION_EVENT, CMSessionEvent.ADD_NONBLOCK_SOCKET_CHANNEL_ACK);
 
 		CMSessionEvent se = new CMSessionEvent();
 		se.setID(CMSessionEvent.ADD_NONBLOCK_SOCKET_CHANNEL);
 		se.setChannelName(getMyself().getName());
 		se.setChannelNum(nChKey);
-		send(se, strServer, CMInfo.CM_STREAM, nChKey);
+		boolean bRequestResult = send(se, strServer, CMInfo.CM_STREAM, nChKey);
+		if(!bRequestResult)
+			return null;
 		
 		se = null;
 		
-		synchronized(eInfo.getANBSCAObject())
+		synchronized(eventSync)
 		{
-			while(nReturnCode == -1)
+			while(replyEvent == null)
 			{
 				try {
-					eInfo.getANBSCAObject().wait(60000);  // timeout 60s
+					eventSync.wait(30000);  // timeout 30s
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				nReturnCode = eInfo.getANBSCAReturnCode();
-			}
-			
-			eInfo.setANBSCAReturnCode(-1);	// reset the value (-1)
+				replyEvent = (CMSessionEvent) eventSync.getReplyEvent();
+			}	
 		}
+		eventSync.init();
 
+		nReturnCode = replyEvent.getReturnCode();
 		if(nReturnCode == 1) // successfully add the new channel info (key, channel) at the server
 		{
 			if(CMInfo._CM_DEBUG)
@@ -1315,6 +1451,8 @@ public class CMClientStub extends CMStub {
 		SocketChannel sc = null;
 		CMChannelInfo<Integer> scInfo = null;
 		CMEventInfo eInfo = m_cmInfo.getEventInfo();
+		CMEventSynchronizer eventSync = eInfo.getEventSynchronizer();
+		CMSessionEvent replyEvent = null;
 		int nReturnCode = -1;
 
 		if(getMyself().getState() == CMInfo.CM_INIT || getMyself().getState() == CMInfo.CM_CONNECT)
@@ -1362,39 +1500,34 @@ public class CMClientStub extends CMStub {
 			return null;
 		}
 
-		synchronized(eInfo.getABSCAObject())
-		{
-			/*
-			 * This statement is required because the ack event of adding a nonblocking socket channel
-			 * can set the ABSCAReturnCode value.
-			 */
-			eInfo.setABSCAReturnCode(-1);
-		}
+		eventSync.setWaitingEvent(CMInfo.CM_SESSION_EVENT, CMSessionEvent.ADD_BLOCK_SOCKET_CHANNEL_ACK);
 
 		CMSessionEvent se = new CMSessionEvent();
 		se.setID(CMSessionEvent.ADD_BLOCK_SOCKET_CHANNEL);
 		se.setChannelName(getMyself().getName());
 		se.setChannelNum(nChKey);
-		//send(se, strServer, CMInfo.CM_STREAM, nKey);
-		send(se, strServer, CMInfo.CM_STREAM, nChKey, true);
+		boolean bRequestResult = send(se, strServer, CMInfo.CM_STREAM, nChKey, true);
+		if(!bRequestResult)
+			return null;
+		
 		se = null;
 
-		synchronized(eInfo.getABSCAObject())
+		synchronized(eventSync)
 		{
-			while(nReturnCode == -1)
+			while(replyEvent == null)
 			{
 				try {
-					eInfo.getABSCAObject().wait(60000);  // timeout 60s
+					eventSync.wait(30000);  // timeout 30s
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				nReturnCode = eInfo.getABSCAReturnCode();
-			}
-			
-			eInfo.setABSCAReturnCode(-1);	// reset the value (-1)
+				replyEvent = (CMSessionEvent) eventSync.getReplyEvent();
+			}			
 		}
+		eventSync.init();
 
+		nReturnCode = replyEvent.getReturnCode();
 		if(nReturnCode == 1) // successfully add the new channel info (key, channel) at the server
 		{
 			if(CMInfo._CM_DEBUG)
@@ -1540,6 +1673,8 @@ public class CMClientStub extends CMStub {
 		SocketChannel sc = null;
 		CMSessionEvent se = null;
 		CMEventInfo eInfo = m_cmInfo.getEventInfo();
+		CMEventSynchronizer eventSync = eInfo.getEventSynchronizer();
+		CMSessionEvent replyEvent = null;
 		int nReturnCode = -1;
 
 		if(getMyself().getState() == CMInfo.CM_INIT || getMyself().getState() == CMInfo.CM_CONNECT)
@@ -1571,38 +1706,34 @@ public class CMClientStub extends CMStub {
 			return false;
 		}
 		
-		synchronized(eInfo.getRBSCAObject())
-		{
-			/*
-			 * This statement is required becuase the ack event of removing a nonblocking socket channel
-			 * can set the ABSCAReturnCode value.
-			 */
-			eInfo.setRBSCAReturnCode(-1);			
-		}
+		eventSync.setWaitingEvent(CMInfo.CM_SESSION_EVENT, CMSessionEvent.REMOVE_BLOCK_SOCKET_CHANNEL_ACK);
 		
 		se = new CMSessionEvent();
 		se.setID(CMSessionEvent.REMOVE_BLOCK_SOCKET_CHANNEL);
 		se.setChannelNum(nChKey);
 		se.setChannelName(interInfo.getMyself().getName());
 		result = send(se, strServer);	// send the event with the default nonblocking socket channel
+		if(!result)
+			return false;
+		
 		se = null;
 		
-		synchronized(eInfo.getRBSCAObject())
+		synchronized(eventSync)
 		{
-			while(nReturnCode == -1)
+			while(replyEvent == null)
 			{
 				try {
-					eInfo.getRBSCAObject().wait(60000);  // timeout 60s
+					eventSync.wait(30000);  // timeout 30s
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				nReturnCode = eInfo.getRBSCAReturnCode();
+				replyEvent = (CMSessionEvent) eventSync.getReplyEvent();
 			}
-			
-			eInfo.setRBSCAReturnCode(-1);	// reset the value (-1)
 		}
+		eventSync.init();
 
+		nReturnCode = replyEvent.getReturnCode();
 		if(nReturnCode == 1) // successfully remove the new channel info (key, channel) at the server
 		{
 			if(CMInfo._CM_DEBUG)
@@ -1624,7 +1755,6 @@ public class CMClientStub extends CMStub {
 		}
 		
 		return result;
-
 	}
 
 	/**
