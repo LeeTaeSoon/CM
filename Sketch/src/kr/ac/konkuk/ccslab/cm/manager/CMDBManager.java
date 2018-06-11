@@ -33,7 +33,7 @@ public class CMDBManager {
 		
 		// setup the connection with the DB
 		String url = "jdbc:mysql://"+confInfo.getDBHost()+":3306/"+confInfo.getDBName();
-		url += "?useUnicode=true&characterEncoding=euckr";	// for using Korean character
+		url += "?useUnicode=true&characterEncoding=euckr&serverTimezone=UTC&useSSL=false";	// for using Korean character
 		dbInfo.setDBURL(url);
 				
 		return;
