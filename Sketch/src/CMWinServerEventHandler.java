@@ -121,6 +121,7 @@ public class CMWinServerEventHandler implements CMEventHandler {
 		case CMSessionEvent.REGISTER_USER:
 			//System.out.println("User registration requested by user["+se.getUserName()+"].");
 			printMessage("User registration requested by user["+se.getUserName()+"].\n");
+			CMDBManager.queryInsertUser(se.getUserName(), se.getPassword(), m_serverStub.getCMInfo());
 			break;
 		case CMSessionEvent.DEREGISTER_USER:
 			//System.out.println("User deregistration requested by user["+se.getUserName()+"].");
