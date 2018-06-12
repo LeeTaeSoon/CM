@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.Random;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -45,18 +43,9 @@ public class CMWinClient extends JFrame {
 	private JTextField m_inTextField;
 	private JButton m_startStopButton;
 	private JButton m_loginLogoutButton;
-	private JPanel m_leftButtonPanel;
+	private JPanel m_leftListPanel;
 	private JScrollPane m_westScroll;
-	private JButton m_composeSNSContentButton;
-	private JButton m_readNewSNSContentButton;
-	private JButton m_readNextSNSContentButton;
-	private JButton m_readPreviousSNSContentButton;
-	private JButton m_findUserButton;
-	private JButton m_addFriendButton;
-	private JButton m_removeFriendButton;
-	private JButton m_friendsButton;
-	private JButton m_friendRequestersButton;
-	private JButton m_biFriendsButton;
+	private JList m_lobbyList;
 	private MyMouseListener cmMouseListener;
 	private CMClientStub m_clientStub;
 	private CMWinClientEventHandler m_eventHandler;
@@ -104,56 +93,44 @@ public class CMWinClient extends JFrame {
 		m_loginLogoutButton.addActionListener(cmActionListener);
 		topButtonPanel.add(m_loginLogoutButton);
 		
-		m_leftButtonPanel = new JPanel();
-		m_leftButtonPanel.setBackground(new Color(220,220,220));
-		m_leftButtonPanel.setLayout(new BoxLayout(m_leftButtonPanel, BoxLayout.Y_AXIS));
-		add(m_leftButtonPanel, BorderLayout.WEST);
-		m_westScroll = new JScrollPane (m_leftButtonPanel, 
+		m_leftListPanel = new JPanel();
+		m_leftListPanel.setBackground(new Color(220,220,220));
+		m_leftListPanel.setLayout(new BoxLayout(m_leftListPanel, BoxLayout.Y_AXIS));
+		add(m_leftListPanel, BorderLayout.WEST);
+		m_westScroll = new JScrollPane (m_leftListPanel, 
 				   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		//add(westScroll);
 		getContentPane().add(m_westScroll, BorderLayout.WEST);
 
 		Border lineBorder = BorderFactory.createLineBorder(Color.BLACK);
-		TitledBorder titledBorder = BorderFactory.createTitledBorder(lineBorder, "SNS");
-		JPanel snsPanel = new JPanel();
-		snsPanel.setLayout(new BoxLayout(snsPanel, BoxLayout.Y_AXIS));
-		snsPanel.setBorder(titledBorder);
+		TitledBorder titledBorder = BorderFactory.createTitledBorder(lineBorder, "Lobby");
+
 		
-		m_composeSNSContentButton = new JButton("Compose");
-		m_composeSNSContentButton.addActionListener(cmActionListener);
-		m_readNewSNSContentButton = new JButton("Read New");
-		m_readNewSNSContentButton.addActionListener(cmActionListener);
-		m_readNextSNSContentButton = new JButton("Read Next");
-		m_readNextSNSContentButton.addActionListener(cmActionListener);
-		m_readPreviousSNSContentButton = new JButton("Read Prev");
-		m_readPreviousSNSContentButton.addActionListener(cmActionListener);
-		m_findUserButton = new JButton("Find user");
-		m_findUserButton.addActionListener(cmActionListener);
-		m_addFriendButton = new JButton("Add Friend");
-		m_addFriendButton.addActionListener(cmActionListener);
-		m_removeFriendButton = new JButton("Remove Friend");
-		//m_removeFriendButton.setMaximumSize(new Dimension(150,10));
-		m_removeFriendButton.addActionListener(cmActionListener);
-		m_friendsButton = new JButton("Friends");
-		m_friendsButton.addActionListener(cmActionListener);
-		m_friendRequestersButton = new JButton("Friend requests");
-		//m_friendRequestersButton.setMaximumSize(new Dimension(150,10));
-		m_friendRequestersButton.addActionListener(cmActionListener);
-		m_biFriendsButton = new JButton("Bi-friends");
-		m_biFriendsButton.addActionListener(cmActionListener);
-		snsPanel.add(m_composeSNSContentButton);
-		snsPanel.add(m_readNewSNSContentButton);
-		snsPanel.add(m_readNextSNSContentButton);
-		snsPanel.add(m_readPreviousSNSContentButton);
-		snsPanel.add(m_findUserButton);
-		snsPanel.add(m_addFriendButton);
-		snsPanel.add(m_removeFriendButton);
-		snsPanel.add(m_friendsButton);
-		snsPanel.add(m_friendRequestersButton);
-		snsPanel.add(m_biFriendsButton);
-		m_leftButtonPanel.add(snsPanel);
+		JPanel lobbyPanel = new JPanel();
+		lobbyPanel.setLayout(new BoxLayout(lobbyPanel, BoxLayout.Y_AXIS));
+		lobbyPanel.setBorder(titledBorder);
+
+		//test string array
+		ArrayList<String> a = new ArrayList<>();
 		
-		m_leftButtonPanel.setVisible(false);
+		String[] str = {"HTML", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM"};
+		for(int i = 0; i < str.length; i++) {
+			a.add(str[i]);
+		}
+		Object[] strlist = a.toArray();
+		
+		m_lobbyList = new JList();
+		JScrollPane scrollPane = new JScrollPane(m_lobbyList);
+		
+		m_lobbyList.setFixedCellWidth(120);
+		m_lobbyList.setMinimumSize(new Dimension(110, 800));
+		m_lobbyList.setListData(strlist);
+		m_lobbyList.setSelectedIndex(0);
+
+		lobbyPanel.add(scrollPane);
+		m_leftListPanel.add(lobbyPanel);
+		
+		m_leftListPanel.setVisible(false);
 		m_westScroll.setVisible(false);
 		setVisible(true);
 
@@ -206,7 +183,7 @@ public class CMWinClient extends JFrame {
 	{
 		m_startStopButton.setText("Start Client CM");
 		m_loginLogoutButton.setText("Login");
-		m_leftButtonPanel.setVisible(false);
+		m_leftListPanel.setVisible(false);
 		m_westScroll.setVisible(false);
 		revalidate();
 		repaint();
@@ -224,31 +201,31 @@ public class CMWinClient extends JFrame {
 		case CMInfo.CM_INIT:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Login");
-			m_leftButtonPanel.setVisible(false);
+			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
 			break;
 		case CMInfo.CM_CONNECT:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Login");
-			m_leftButtonPanel.setVisible(false);
+			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
 			break;
 		case CMInfo.CM_LOGIN:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Logout");
-			m_leftButtonPanel.setVisible(false);
+			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
 			break;
 		case CMInfo.CM_SESSION_JOIN:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Logout");
-			m_leftButtonPanel.setVisible(true);
+			m_leftListPanel.setVisible(true);
 			m_westScroll.setVisible(true);
 			break;
 		default:
 			m_startStopButton.setText("Start Client CM");
 			m_loginLogoutButton.setText("Login");
-			m_leftButtonPanel.setVisible(false);
+			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
 			break;
 		}
@@ -1260,36 +1237,6 @@ public class CMWinClient extends JFrame {
 		}
 		
 		return;
-	}
-
-	public Iterator<CMGroup> getGroupList()
-	{
-		// check local state
-		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
-		CMUser myself = interInfo.getMyself();
-		
-		if(myself.getState() != CMInfo.CM_SESSION_JOIN)
-		{
-			//System.out.println("You should join a session and a group.");
-			System.out.println("You should join a session and a group.\n");
-			return null;
-		}
-		
-		CMSession session = interInfo.findSession(myself.getCurrentSession());
-		Iterator<CMGroup> iter = session.getGroupList().iterator();
-		
-		/* Using example
-		while(iter.hasNext())
-		{
-			CMGroupInfo gInfo = iter.next();
-			//System.out.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
-			//		, gInfo.getGroupPort());
-			printMessage(String.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
-					, gInfo.getGroupPort()));
-		}
-		*/
-		
-		return iter;
 	}
 	
 	public void testCurrentUserStatus()
@@ -3556,46 +3503,46 @@ public class CMWinClient extends JFrame {
 				// logout from the default cm server
 				testLogoutDS();
 			}
-			else if(button.equals(m_composeSNSContentButton))
-			{
-				testSNSContentUpload();
-			}
-			else if(button.equals(m_readNewSNSContentButton))
-			{
-				testDownloadNewSNSContent();
-			}
-			else if(button.equals(m_readNextSNSContentButton))
-			{
-				testDownloadNextSNSContent();
-			}
-			else if(button.equals(m_readPreviousSNSContentButton))
-			{
-				testDownloadPreviousSNSContent();
-			}
-			else if(button.equals(m_findUserButton))
-			{
-				testFindRegisteredUser();
-			}
-			else if(button.equals(m_addFriendButton))
-			{
-				testAddNewFriend();
-			}
-			else if(button.equals(m_removeFriendButton))
-			{
-				testRemoveFriend();
-			}
-			else if(button.equals(m_friendsButton))
-			{
-				testRequestFriendsList();
-			}
-			else if(button.equals(m_friendRequestersButton))
-			{
-				testRequestFriendRequestersList();
-			}
-			else if(button.equals(m_biFriendsButton))
-			{
-				testRequestBiFriendsList();
-			}
+//			else if(button.equals(m_composeSNSContentButton))
+//			{
+//				testSNSContentUpload();
+//			}
+//			else if(button.equals(m_readNewSNSContentButton))
+//			{
+//				testDownloadNewSNSContent();
+//			}
+//			else if(button.equals(m_readNextSNSContentButton))
+//			{
+//				testDownloadNextSNSContent();
+//			}
+//			else if(button.equals(m_readPreviousSNSContentButton))
+//			{
+//				testDownloadPreviousSNSContent();
+//			}
+//			else if(button.equals(m_findUserButton))
+//			{
+//				testFindRegisteredUser();
+//			}
+//			else if(button.equals(m_addFriendButton))
+//			{
+//				testAddNewFriend();
+//			}
+//			else if(button.equals(m_removeFriendButton))
+//			{
+//				testRemoveFriend();
+//			}
+//			else if(button.equals(m_friendsButton))
+//			{
+//				testRequestFriendsList();
+//			}
+//			else if(button.equals(m_friendRequestersButton))
+//			{
+//				testRequestFriendRequestersList();
+//			}
+//			else if(button.equals(m_biFriendsButton))
+//			{
+//				testRequestBiFriendsList();
+//			}
 
 			m_inTextField.requestFocus();
 		}
