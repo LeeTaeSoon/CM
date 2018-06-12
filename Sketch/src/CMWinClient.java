@@ -112,21 +112,17 @@ public class CMWinClient extends JFrame {
 		lobbyPanel.setLayout(new BoxLayout(lobbyPanel, BoxLayout.Y_AXIS));
 		lobbyPanel.setBorder(titledBorder);
 
-		//test string array
-		ArrayList<String> a = new ArrayList<>();
-		
-		String[] str = {"HTML", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM", "XML", "C", "C++", "JAVA", "Oracle", "COM"};
-		for(int i = 0; i < str.length; i++) {
-			a.add(str[i]);
-		}
-		Object[] strlist = a.toArray();
+		Object[] strlist = groupUsers.toArray();
 		
 		m_lobbyList = new JList();
 		JScrollPane scrollPane = new JScrollPane(m_lobbyList);
 		
 		m_lobbyList.setFixedCellWidth(120);
 		m_lobbyList.setMinimumSize(new Dimension(110, 800));
-		m_lobbyList.setListData(strlist);
+		m_lobbyList.setModel(new DefaultListModel() {
+			Object[] strlist = groupUsers.toArray();
+		});
+//		m_lobbyList.setListData(strlist);
 		m_lobbyList.setSelectedIndex(0);
 
 		lobbyPanel.add(scrollPane);
@@ -632,11 +628,18 @@ public class CMWinClient extends JFrame {
 		}
 	}
 	
+	public void showLobbyList() {
+		Object[] a = groupUsers.toArray();
+		m_lobbyList.setListData(a);
+		revalidate();
+	}
+	
 	public void addGroupUser(String name) {
 		if (!groupUsers.contains(name))
 			groupUsers.add(name);
 		
 		showGroupMember();
+		showLobbyList();
 	}
 
 	public void deleteGroupUser(String name) {
@@ -648,12 +651,14 @@ public class CMWinClient extends JFrame {
 		}
 		
 		showGroupMember();
+		showLobbyList();
 	}
 
 	public void cleanGroupUser() {
 		groupUsers.clear();
 		
 		showGroupMember();
+		showLobbyList();
 	}
 	
 	public void testSyncLoginDS()
