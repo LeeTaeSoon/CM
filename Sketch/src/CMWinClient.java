@@ -1261,6 +1261,36 @@ public class CMWinClient extends JFrame {
 		
 		return;
 	}
+
+	public Iterator<CMGroup> getGroupList()
+	{
+		// check local state
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		CMUser myself = interInfo.getMyself();
+		
+		if(myself.getState() != CMInfo.CM_SESSION_JOIN)
+		{
+			//System.out.println("You should join a session and a group.");
+			System.out.println("You should join a session and a group.\n");
+			return null;
+		}
+		
+		CMSession session = interInfo.findSession(myself.getCurrentSession());
+		Iterator<CMGroup> iter = session.getGroupList().iterator();
+		
+		/* Using example
+		while(iter.hasNext())
+		{
+			CMGroupInfo gInfo = iter.next();
+			//System.out.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
+			//		, gInfo.getGroupPort());
+			printMessage(String.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
+					, gInfo.getGroupPort()));
+		}
+		*/
+		
+		return iter;
+	}
 	
 	public void testCurrentUserStatus()
 	{

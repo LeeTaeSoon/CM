@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.io.*;
 import java.awt.*;
 
+import kr.ac.konkuk.ccslab.cm.entity.CMGroup;
+import kr.ac.konkuk.ccslab.cm.entity.CMGroupInfo;
 import kr.ac.konkuk.ccslab.cm.entity.CMServerInfo;
 import kr.ac.konkuk.ccslab.cm.entity.CMSessionInfo;
 import kr.ac.konkuk.ccslab.cm.event.CMDataEvent;
@@ -383,6 +385,20 @@ public class CMWinClientEventHandler implements CMEventHandler{
 			//		+de.getHandlerSession()+").");
 			printMessage("["+de.getUserName()+"] enters group("+de.getHandlerGroup()+") in session("
 					+de.getHandlerSession()+").\n");
+			
+			// TODO : 아래에 세션 참여 사람들이랑 그룹들 보여주기
+			if (de.getHandlerGroup().equals("g1")) {
+				Iterator<CMGroup> groupIter = m_client.getGroupList();
+				
+				while(groupIter.hasNext())
+				{
+					CMGroupInfo gInfo = groupIter.next();
+					//System.out.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
+					//		, gInfo.getGroupPort());
+					printMessage(String.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
+							, gInfo.getGroupPort()));
+				}
+			}
 			break;
 		case CMDataEvent.REMOVE_USER:
 			//System.out.println("["+de.getUserName()+"] leaves group("+de.getHandlerGroup()+") in session("
