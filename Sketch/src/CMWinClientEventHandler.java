@@ -386,7 +386,8 @@ public class CMWinClientEventHandler implements CMEventHandler{
 			printMessage("["+de.getUserName()+"] enters group("+de.getHandlerGroup()+") in session("
 					+de.getHandlerSession()+").\n");
 			
-			// TODO : 아래에 세션 참여 사람들이랑 그룹들 보여주기
+			m_client.addGroupUser(de.getUserName());
+			
 			if (de.getHandlerGroup().equals("g1")) {
 				Iterator<CMGroup> groupIter = m_client.getGroupList();
 				
@@ -405,6 +406,14 @@ public class CMWinClientEventHandler implements CMEventHandler{
 			//		+de.getHandlerSession()+").");
 			printMessage("["+de.getUserName()+"] leaves group("+de.getHandlerGroup()+") in session("
 					+de.getHandlerSession()+").\n");
+			
+			m_client.deleteGroupUser(de.getUserName());
+			break;
+		case CMDataEvent.INHABITANT:
+			printMessage("["+de.getUserName()+"] is in this group("+de.getHandlerGroup()+") in session("+de.getHandlerSession()+").\n");
+			// 새로 들어온 자기 자신도 여기서 호출됨
+			// 새로 참여한 애는 2번 들어감
+			m_client.addGroupUser(de.getUserName());
 			break;
 		default:
 			return;

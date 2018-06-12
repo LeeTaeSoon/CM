@@ -50,6 +50,8 @@ public class CMWinClient extends JFrame {
 	private CMClientStub m_clientStub;
 	private CMWinClientEventHandler m_eventHandler;
 	
+	ArrayList<String> groupUsers = new ArrayList<String>();
+	
 	CMWinClient()
 	{		
 		MyKeyListener cmKeyListener = new MyKeyListener();
@@ -418,7 +420,7 @@ public class CMWinClient extends JFrame {
 			testCurrentUserStatus();
 			break;
 		case 15: // change current group
-			testChangeGroup();
+			changeGroup(null);
 			break;
 		case 16: // add additional channel
 			testAddChannel();
@@ -618,6 +620,40 @@ public class CMWinClient extends JFrame {
 		}
 		
 		printMessage("======\n");
+	}
+	
+	public void showGroupMember() {
+		printMessage("======Current Group Users\n");
+		
+		int count = 1;
+		for (String user : groupUsers) {
+			printMessage("user " + count + " : " + user + "\n");
+			count++;
+		}
+	}
+	
+	public void addGroupUser(String name) {
+		if (!groupUsers.contains(name))
+			groupUsers.add(name);
+		
+		showGroupMember();
+	}
+
+	public void deleteGroupUser(String name) {
+		if (!groupUsers.contains(name))
+			printMessage("There is no user("+name+")\n");
+		else {
+			int index = groupUsers.indexOf(name);
+			groupUsers.remove(index);
+		}
+		
+		showGroupMember();
+	}
+
+	public void cleanGroupUser() {
+		groupUsers.clear();
+		
+		showGroupMember();
 	}
 	
 	public void testSyncLoginDS()
@@ -1239,6 +1275,36 @@ public class CMWinClient extends JFrame {
 		return;
 	}
 	
+	public Iterator<CMGroup> getGroupList()
+	{
+		// check local state
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		CMUser myself = interInfo.getMyself();
+		
+		if(myself.getState() != CMInfo.CM_SESSION_JOIN)
+		{
+			//System.out.println("You should join a session and a group.");
+			System.out.println("You should join a session and a group.\n");
+			return null;
+		}
+		
+		CMSession session = interInfo.findSession(myself.getCurrentSession());
+		Iterator<CMGroup> iter = session.getGroupList().iterator();
+		
+		/* Using example
+		while(iter.hasNext())
+		{
+			CMGroupInfo gInfo = iter.next();
+			//System.out.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
+			//		, gInfo.getGroupPort());
+			printMessage(String.format("%-20s%-20s%-20d%n", gInfo.getGroupName(), gInfo.getGroupAddress()
+					, gInfo.getGroupPort()));
+		}
+		*/
+		
+		return iter;
+	}
+	
 	public void testCurrentUserStatus()
 	{
 		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
@@ -1275,6 +1341,13 @@ public class CMWinClient extends JFrame {
 		return;
 	}
 
+	public String getMyName() {
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		CMUser myself = interInfo.getMyself();
+		
+		return myself.getName();
+	}
+	
 	public void testChangeGroup()
 	{
 		//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -1299,6 +1372,34 @@ public class CMWinClient extends JFrame {
 		return;
 	}
 
+	public void changeGroup(String groupName)
+	{
+		//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String strGroupName = groupName;
+		//System.out.println("====== change group");
+		printMessage("====== change group\n");
+		/*
+		try {
+			System.out.print("group name: ");
+			strGroupName = br.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
+		if (strGroupName == null)
+			strGroupName = JOptionPane.showInputDialog("Group Name: ");
+		
+		if (strGroupName != null) {
+			cleanGroupUser();
+			m_clientStub.changeGroup(strGroupName);
+		}
+		
+		//System.out.println("======");
+		printMessage("======\n");
+		return;
+	}
+	
 	// ServerSocketChannel is not supported.
 	// A server cannot add SocketChannel.
 	// For the SocketChannel, available server name must be given as well.
