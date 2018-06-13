@@ -31,6 +31,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import MainProgram.CMWinClient;
 
 public class MyDrawing extends JPanel {
 	
@@ -50,12 +51,12 @@ public class MyDrawing extends JPanel {
 	
 	JPanel DrawingPanel;
 	
-
-    
+	CMWinClient m_client;
 	
-	public MyDrawing(){
+	public MyDrawing(CMWinClient m_client){
 //		setLayout(new FlowLayout(FlowLayout.CENTER));
 		PaintTool=new PaintToolFrame();
+		this.m_client = m_client;
 		init();
 	}
 	public void init() {
@@ -110,6 +111,7 @@ public class MyDrawing extends JPanel {
 		PaintTool.btAllClear.addActionListener(btnHandler);
 		PaintTool.btSave.addActionListener(btnHandler);
 		PaintTool.btLoad.addActionListener(btnHandler);
+		PaintTool.btnBack.addActionListener(btnHandler);
 		PaintTool.colorChooser.getSelectionModel().addChangeListener(new ColorHandler());
 	}
 	public void initSlideNote() {
@@ -123,6 +125,9 @@ public class MyDrawing extends JPanel {
 		catch(IOException e){
 			e.printStackTrace();
 		}
+	}
+	public void receiveMessage(CanvasMessage msg) {
+		((MyCanvas)this.can).handleMessage(msg);
 	}
 	class ColorHandler implements ChangeListener{
 
@@ -171,16 +176,20 @@ public class MyDrawing extends JPanel {
                 try {
                     if (response == JFileChooser.APPROVE_OPTION) {
                         String pathName = fileChooser.getSelectedFile().getPath();
-                        BufferedImage img = ImageIO.read(new File(pathName));
-                        img.getScaledInstance(can2.getWidth(), can2.getHeight(), Image.SCALE_SMOOTH);
-                        can2.setImage(img);
-                        can2.repaint();
+                        m_client.sendCanvasMessage(MyCanvas.makeCanvasMessage(pathName));
+                        //BufferedImage img = ImageIO.read(new File(pathName));
+                        //img.getScaledInstance(can2.getWidth(), can2.getHeight(), Image.SCALE_SMOOTH);
+                        //can2.setImage(img);
+                        //can2.repaint();
                     }
                 } catch (Exception exception) {
                     // TODO Auto-generated catch block
                     exception.printStackTrace();
                 }
-				
+			}
+			else if(o == PaintTool.btnBack) {
+				m_client.goLobby();
+				m_client.goBack();
 			}
 		}
 	}
@@ -192,7 +201,10 @@ public class MyDrawing extends JPanel {
 			int xx=e.getX(); 
 			int yy=e.getY();
 			((MyCanvas)can).x=xx; ((MyCanvas)can).y=yy;
-			((MyCanvas)can).addPoint();
+			//((MyCanvas)can).addPoint();
+			MyCanvas myCanvas = (MyCanvas)can;
+			Point pt = new Point(myCanvas.x,myCanvas.y,myCanvas.w,myCanvas.h,myCanvas.cr);
+			m_client.sendCanvasMessage(MyCanvas.makeCanvasMessage(pt));
 			can.repaint(); 
 		}
 
@@ -224,7 +236,9 @@ public class MyDrawing extends JPanel {
 			int xx=e.getX(); 
 			int yy=e.getY();
 			((MyCanvas)can).x=xx; ((MyCanvas)can).y=yy;
-			((MyCanvas)can).addPoint();
+			MyCanvas myCanvas = (MyCanvas)can;
+			Point pt = new Point(myCanvas.x,myCanvas.y,myCanvas.w,myCanvas.h,myCanvas.cr);
+			m_client.sendCanvasMessage(MyCanvas.makeCanvasMessage(pt));
 			can.repaint(); 
 		}
 

@@ -429,7 +429,18 @@ public class CMWinClientEventHandler implements CMEventHandler{
 		//System.out.println("session("+due.getHandlerSession()+"), group("+due.getHandlerGroup()+")");
 		printMessage("session("+due.getHandlerSession()+"), group("+due.getHandlerGroup()+")\n");
 		//System.out.println("dummy msg: "+due.getDummyInfo());
-		printMessage("dummy msg: "+deserializeCanvasMsg(due.getDummyInfo()).toString()+"\n");
+		//printMessage("dummy msg: "+deserializeCanvasMsg(due.getDummyInfo()).toString()+"\n");
+		
+		CanvasMessage msg = deserializeCanvasMsg(due.getDummyInfo());
+		
+		int type = msg.getDataType();
+		
+		if (type == 0)
+			m_client.handleCanvasMessage(msg);
+		else {
+			//text
+		}
+			
 		return;
 	}
 	

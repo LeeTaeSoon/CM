@@ -15,11 +15,10 @@ import java.nio.channels.SocketChannel;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
 
 import Sketcher.CanvasMessage;
+import Sketcher.MyDrawing;
 import Sketcher.Point;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroup;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroupInfo;
@@ -62,6 +61,12 @@ public class CMWinClient extends JFrame {
 	private JScrollPane m_eastScroll;
 	private JList m_groupList;
 	private JScrollPane scrollPanel;
+	
+	private JPanel SouthPanel;
+	
+	private CardLayout cardLayout;
+	private JPanel MainPanel;
+	private MyDrawing SketchPanel;
 
 	CMWinClient()
 	{		
@@ -72,29 +77,50 @@ public class CMWinClient extends JFrame {
 		setSize(600, 600);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		setLayout(new BorderLayout());
+		//init CardLayout
+		cardLayout = new CardLayout();
+		//MainPanel : Contains Login and UserLists
+		MainPanel = new JPanel();
+		//SketchPanel : Panel for Sketching
+		SketchPanel = new MyDrawing(this);
+		SouthPanel = new JPanel();
+		
+		setLayout(cardLayout);
+		MainPanel.setLayout(new BorderLayout());
+		MainPanel.add(SouthPanel, BorderLayout.SOUTH);
+		SouthPanel.setLayout(new BoxLayout(SouthPanel,BoxLayout.PAGE_AXIS));
+		
+		this.add("Main", MainPanel);
+		this.add("Sketch", SketchPanel);
 
 		m_outTextPane = new JTextPane();
+//		m_outTextPane.setSize(new Dimension(200,200));
 		m_outTextPane.setBackground(new Color(245,245,245));
 		//m_outTextPane.setForeground(Color.WHITE);
 		m_outTextPane.setEditable(false);
 
 		StyledDocument doc = m_outTextPane.getStyledDocument();
 		addStylesToDocument(doc);
-		add(m_outTextPane, BorderLayout.CENTER);
+		//SouthPanel.add(m_outTextPane);
+		//MainPanel.add(m_outTextPane, BorderLayout.CENTER);
 		JScrollPane centerScroll = new JScrollPane (m_outTextPane, 
 				   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		//centerScroll.setMaximumSize(SouthPanel.getPreferredSize());
 		//add(centerScroll);
-		getContentPane().add(centerScroll, BorderLayout.CENTER);
+		//getContentPane().add(centerScroll, BorderLayout.CENTER);
+		SouthPanel.add(centerScroll);
+		//MainPanel.add(centerScroll, BorderLayout.CENTER);
 		
 		m_inTextField = new JTextField();
+		//m_inTextField.setPreferredSize(SouthPanel.getSize());
 		m_inTextField.addKeyListener(cmKeyListener);
-		add(m_inTextField, BorderLayout.SOUTH);
+		SouthPanel.add(m_inTextField);
+		//MainPanel.add(m_inTextField, BorderLayout.SOUTH);
 		
 		JPanel topButtonPanel = new JPanel();
 		topButtonPanel.setBackground(new Color(220,220,220));
 		topButtonPanel.setLayout(new FlowLayout());
-		add(topButtonPanel, BorderLayout.NORTH);
+		MainPanel.add(topButtonPanel, BorderLayout.NORTH);
 		
 		m_startStopButton = new JButton("Start Client CM");
 		//m_startStopButton.setBackground(Color.LIGHT_GRAY);	// not work on Mac
@@ -109,17 +135,18 @@ public class CMWinClient extends JFrame {
 		m_leftListPanel = new JPanel();
 		m_leftListPanel.setBackground(new Color(220,220,220));
 		m_leftListPanel.setLayout(new BoxLayout(m_leftListPanel, BoxLayout.Y_AXIS));
-		add(m_leftListPanel, BorderLayout.WEST);
+		MainPanel.add(m_leftListPanel, BorderLayout.WEST);
 		m_westScroll = new JScrollPane (m_leftListPanel, 
 				   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 		m_rightListPanel = new JPanel();
 		m_rightListPanel.setBackground(new Color(220,220,220));
 		m_rightListPanel.setLayout(new BoxLayout(m_rightListPanel, BoxLayout.Y_AXIS));
-		add(m_rightListPanel, BorderLayout.EAST);
+		MainPanel.add(m_rightListPanel, BorderLayout.CENTER);
 		m_eastScroll = new JScrollPane(m_rightListPanel, 
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		getContentPane().add(m_eastScroll, BorderLayout.EAST);
+		//getContentPane().add(m_eastScroll, BorderLayout.EAST);
+		MainPanel.add(m_eastScroll,BorderLayout.CENTER);
 		
 		Border lineBorderRight = BorderFactory.createLineBorder(Color.BLACK);
 		TitledBorder titledBorderRight = BorderFactory.createTitledBorder(lineBorderRight, "SNS");
@@ -138,6 +165,9 @@ public class CMWinClient extends JFrame {
 		            int index = list.locationToIndex(evt.getPoint());
 		            System.out.println(index);
 		            System.out.println(list.getSelectedValue().toString());
+		            
+		            MaximizeFrame();
+		            cardLayout.next(getContentPane());
 		        } 
 		    }
 		});
@@ -151,8 +181,9 @@ public class CMWinClient extends JFrame {
 		m_eastScroll.setVisible(false);
 				   
 		//add(westScroll);
-		getContentPane().add(m_westScroll, BorderLayout.WEST);
-
+		//getContentPane().add(m_westScroll, BorderLayout.WEST);
+		MainPanel.add(m_westScroll, BorderLayout.WEST);
+		
 		Border lineBorder = BorderFactory.createLineBorder(Color.BLACK);
 		TitledBorder titledBorder = BorderFactory.createTitledBorder(lineBorder, "Lobby");
 
@@ -198,6 +229,17 @@ public class CMWinClient extends JFrame {
 		}
 		
 		m_inTextField.requestFocus();
+	}
+	
+	public void handleCanvasMessage(CanvasMessage msg) {
+		this.SketchPanel.receiveMessage(msg);
+	}
+	public void MaximizeFrame() {
+		this.setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+	}
+	public void goBack() {
+		cardLayout.previous(getContentPane());
+		this.setSize(600, 600);
 	}
 	
 	private void addStylesToDocument(StyledDocument doc)

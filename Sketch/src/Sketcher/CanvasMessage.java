@@ -12,6 +12,8 @@ public class CanvasMessage implements Serializable {
 	Point pt;
 	int type;
 	String filePath;
+	int dataType;
+	String text;
 	
 	public CanvasMessage() {
 		type = CANVAS_DEFAULT;
@@ -25,6 +27,22 @@ public class CanvasMessage implements Serializable {
 			this.type = MessageType;
 		else
 			this.type = CANVAS_DEFAULT;
+	}
+		
+	public int getDataType() {
+		return dataType;
+	}
+	
+	public void setDataType(int dataType) {
+		this.dataType = dataType;
+	}
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String text) {
+		this.text = text;
 	}
 
 	public Point getPt() {

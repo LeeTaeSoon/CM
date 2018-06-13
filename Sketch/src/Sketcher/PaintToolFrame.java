@@ -10,7 +10,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class PaintToolFrame extends JPanel {
-	public JButton btPlus, btMinus, btClear, btAllClear, btSave, btLoad;
+	public JButton btPlus, btMinus, btClear, btAllClear, btSave, btLoad, btnBack;
 	public JPanel PointPanel;
 	JColorChooser colorChooser;
 	
@@ -23,12 +23,14 @@ public class PaintToolFrame extends JPanel {
 		colorChooser = new JColorChooser();
 		
 		PointPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		PointPanel.add(btPlus=new JButton("Å©°Ô"));
-		PointPanel.add(btMinus=new JButton("ÀÛ°Ô"));
-		PointPanel.add(btClear=new JButton("Áö¿ì±â"));
-		PointPanel.add(btAllClear=new JButton("¸ğµÎÁö¿ì±â"));
-		PointPanel.add(btSave=new JButton("ÀúÀå"));
-		PointPanel.add(btLoad = new JButton("ºÒ·¯¿À±â"));
+		PointPanel.add(btPlus=new JButton("í¬ê²Œ"));
+		PointPanel.add(btMinus=new JButton("ì‘ê²Œ"));
+		PointPanel.add(btClear=new JButton("ì§€ìš°ê°œ"));
+		PointPanel.add(btAllClear=new JButton("ëª¨ë‘ì§€ìš°ê¸°"));
+		PointPanel.add(btSave=new JButton("ì €ì¥"));
+		PointPanel.add(btLoad = new JButton("ë¶ˆëŸ¬ì˜¤ê¸°"));
+		PointPanel.add(btnBack = new JButton("ë‚˜ê°€ê¸°"));
+		
 		
 		add(PointPanel);
 		add(colorChooser);

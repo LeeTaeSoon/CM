@@ -39,6 +39,23 @@ public class MyCanvas extends Canvas {
 			//g2.setStroke(new BasicStroke(p.w));
 		}
 	}
+	
+	public static CanvasMessage makeCanvasMessage(Point p) {
+		CanvasMessage canMsg = new CanvasMessage();
+		canMsg.setPt(p);
+		canMsg.setType(CanvasMessage.CANVAS_DRAW_POINT);
+		
+		return canMsg;
+	}
+	
+	public static CanvasMessage makeCanvasMessage(String FilePath) {
+		CanvasMessage canMsg = new CanvasMessage();
+		canMsg.setFilePath(FilePath);
+		canMsg.setType(CanvasMessage.CANVAS_LOAD_PICTURE);
+		
+		return canMsg;
+	}
+	
 	public void setImage(Image img) {
 		this.clearAll();
 		this.background = img;
