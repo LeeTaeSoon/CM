@@ -31,7 +31,6 @@ public class PaintToolFrame extends JPanel {
 		PointPanel.add(btLoad = new JButton("불러오기"));
 		PointPanel.add(btnBack = new JButton("나가기"));
 		
-		
 		add(PointPanel);
 		add(colorChooser);
 	}

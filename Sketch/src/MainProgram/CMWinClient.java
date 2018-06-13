@@ -155,7 +155,7 @@ public class CMWinClient extends JFrame {
 		snsPanelRight.setLayout(new BoxLayout(snsPanelRight, BoxLayout.Y_AXIS));
 		snsPanelRight.setBorder(titledBorderRight);
 		
-		String labels[] = { "group1", "group2", "group3", "group4", "groupE", "groupF", "groupG"};
+		String labels[] = { "g2", "g3", "g4"};
 		m_groupList= new JList(labels);
 
 		m_groupList.addMouseListener(new MouseAdapter() {
@@ -167,6 +167,7 @@ public class CMWinClient extends JFrame {
 		            System.out.println(index);
 		            System.out.println(list.getSelectedValue().toString());
 		            
+		            changeGroup(list.getSelectedValue().toString());
 		            MaximizeFrame();
 		            cardLayout.next(getContentPane());
 		        } 
@@ -725,7 +726,9 @@ public class CMWinClient extends JFrame {
 		
 		printMessage("======\n");
 	}
-	
+	public ArrayList<String> getGroupUsers() {
+		return groupUsers;
+	}
 	public void showGroupMember() {
 		printMessage("======Current Group Users\n");
 		
@@ -748,6 +751,7 @@ public class CMWinClient extends JFrame {
 		
 		showGroupMember();
 		showLobbyList();
+		SketchPanel.updateUserList();
 	}
 
 	public void deleteGroupUser(String name) {
@@ -760,6 +764,7 @@ public class CMWinClient extends JFrame {
 		
 		showGroupMember();
 		showLobbyList();
+		SketchPanel.updateUserList();
 	}
 
 	public void cleanGroupUser() {
@@ -767,6 +772,7 @@ public class CMWinClient extends JFrame {
 		
 		showGroupMember();
 		showLobbyList();
+		SketchPanel.updateUserList();
 	}
 	
 	public void testSyncLoginDS()
