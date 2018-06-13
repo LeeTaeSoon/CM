@@ -2,10 +2,12 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Console;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.channels.SocketChannel;
@@ -17,6 +19,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
 
+import Sketcher.CanvasMessage;
+import Sketcher.Point;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroup;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroupInfo;
 import kr.ac.konkuk.ccslab.cm.entity.CMPosition;
@@ -456,7 +460,13 @@ public class CMWinClient extends JFrame {
 			testChat();
 			break;
 		case 10: // test CMDummyEvent
-			testDummyEvent();
+			// test msg
+			CanvasMessage msg = new CanvasMessage();
+			msg.setType(0);
+			msg.setFilePath("path");
+			msg.setPt(new Point(1, 2, 3, 4, Color.black));
+			
+			sendCanvasMessage(msg);
 			break;
 		case 11: // test datagram message
 			testDatagram();
@@ -1065,6 +1075,70 @@ public class CMWinClient extends JFrame {
 		//System.out.println("======");
 		printMessage("======\n");
 	}
+	
+
+	public void sendCanvasMessage(CanvasMessage msg)
+	{
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		CMUser myself = interInfo.getMyself();
+		String strInput = null;
+		
+		if(myself.getState() != CMInfo.CM_SESSION_JOIN)
+		{
+			//System.out.println("You should join a session and a group!");
+			printMessage("You should join a session and a group!\n");
+			return;
+		
+		}
+		//System.out.println("====== test CMDummyEvent in current group");
+		printMessage("====== send CanvasEvent in current group\n");
+		/*
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.print("input message: ");
+		try {
+			strInput = br.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
+		
+		strInput = serializeCanvasMsg(msg);
+		if(strInput == null) {
+			printMessage("No Canvas Message in sendCanvasMessage");
+			return;
+		}
+		
+		CMDummyEvent due = new CMDummyEvent();
+		due.setHandlerSession(myself.getCurrentSession());
+		due.setHandlerGroup(myself.getCurrentGroup());
+		due.setDummyInfo(strInput);
+		m_clientStub.cast(due, myself.getCurrentSession(), myself.getCurrentGroup());
+		due = null;
+		
+		//System.out.println("======");
+		printMessage("======\n");
+	}
+	
+	public String serializeCanvasMsg(CanvasMessage msg) {
+		String str = null;
+		
+		byte[] serializedMsg = null;
+	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+	        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+	            oos.writeObject(msg);
+	            // serializedMsg -> 직렬화된 객체 
+	            serializedMsg = baos.toByteArray();
+	        }
+	    } catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    // 바이트 배열로 생성된 직렬화 데이터를 base64로 변환
+	    str = Base64.getEncoder().encodeToString(serializedMsg);
+		
+		return str;
+	}
 
 	public void testDatagram()
 	{
@@ -1458,6 +1532,13 @@ public class CMWinClient extends JFrame {
 		//System.out.println("======");
 		printMessage("======\n");
 		return;
+	}
+	
+	public void goLobby() {
+		// TODO : 지금까지 작성한 내용 서버로 업로드
+		
+		changeGroup("g1");
+		// TODO : 로비 화면 보여주기
 	}
 	
 	// ServerSocketChannel is not supported.

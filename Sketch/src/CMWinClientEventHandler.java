@@ -1,9 +1,12 @@
+import java.awt.Desktop;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Iterator;
 
 import java.io.*;
 import java.awt.*;
 
+import Sketcher.CanvasMessage;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroup;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroupInfo;
 import kr.ac.konkuk.ccslab.cm.entity.CMServerInfo;
@@ -426,8 +429,28 @@ public class CMWinClientEventHandler implements CMEventHandler{
 		//System.out.println("session("+due.getHandlerSession()+"), group("+due.getHandlerGroup()+")");
 		printMessage("session("+due.getHandlerSession()+"), group("+due.getHandlerGroup()+")\n");
 		//System.out.println("dummy msg: "+due.getDummyInfo());
-		printMessage("dummy msg: "+due.getDummyInfo()+"\n");
+		printMessage("dummy msg: "+deserializeCanvasMsg(due.getDummyInfo()).toString()+"\n");
 		return;
+	}
+	
+	private CanvasMessage deserializeCanvasMsg(String str) {
+		CanvasMessage canvasMsg = null;
+		byte[] serializedMember = Base64.getDecoder().decode(str);
+	    try (ByteArrayInputStream bais = new ByteArrayInputStream(serializedMember)) {
+	        try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+	            // 역직렬화된 Member 객체를 읽어온다.
+	            Object object = ois.readObject();
+	            canvasMsg = (CanvasMessage) object;
+	        } catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    } catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+        return canvasMsg;
 	}
 	
 	private void processUserEvent(CMEvent cme)

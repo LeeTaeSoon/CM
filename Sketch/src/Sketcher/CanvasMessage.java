@@ -1,6 +1,8 @@
 package Sketcher;
 
-public class CanvasMessage {
+import java.io.Serializable;
+
+public class CanvasMessage implements Serializable {
 	
 	static final int CANVAS_DEFAULT = 0;
 	static final int CANVAS_DRAW_POINT = 1;
@@ -41,11 +43,7 @@ public class CanvasMessage {
 		this.filePath = filePath;
 	}
 	
-	
-
-
-	
-	
-	
-	
+	public String toString() {
+		return "filePath : " + filePath + ", type : " + type + ", Point : " + pt.h + " " + pt.w + " " + pt.x + " " + pt.y + " " + pt.c.toString(); 
+	}
 }
