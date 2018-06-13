@@ -13,6 +13,8 @@ import java.nio.channels.SocketChannel;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
 
 import kr.ac.konkuk.ccslab.cm.entity.CMGroup;
@@ -52,6 +54,11 @@ public class CMWinClient extends JFrame {
 	
 	ArrayList<String> groupUsers = new ArrayList<String>();
 	
+	private JPanel m_rightListPanel;
+	private JScrollPane m_eastScroll;
+	private JList m_groupList;
+	private JScrollPane scrollPanel;
+
 	CMWinClient()
 	{		
 		MyKeyListener cmKeyListener = new MyKeyListener();
@@ -101,6 +108,44 @@ public class CMWinClient extends JFrame {
 		add(m_leftListPanel, BorderLayout.WEST);
 		m_westScroll = new JScrollPane (m_leftListPanel, 
 				   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+		m_rightListPanel = new JPanel();
+		m_rightListPanel.setBackground(new Color(220,220,220));
+		m_rightListPanel.setLayout(new BoxLayout(m_rightListPanel, BoxLayout.Y_AXIS));
+		add(m_rightListPanel, BorderLayout.EAST);
+		m_eastScroll = new JScrollPane(m_rightListPanel, 
+				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		getContentPane().add(m_eastScroll, BorderLayout.EAST);
+		
+		Border lineBorderRight = BorderFactory.createLineBorder(Color.BLACK);
+		TitledBorder titledBorderRight = BorderFactory.createTitledBorder(lineBorderRight, "SNS");
+		JPanel snsPanelRight = new JPanel();
+		snsPanelRight.setLayout(new BoxLayout(snsPanelRight, BoxLayout.Y_AXIS));
+		snsPanelRight.setBorder(titledBorderRight);
+		
+		String labels[] = { "group1", "group2", "group3", "group4", "groupE", "groupF", "groupG"};
+		m_groupList= new JList(labels);
+
+		m_groupList.addMouseListener(new MouseAdapter() {
+		    public void mouseClicked(MouseEvent evt) {
+		        JList list = (JList)evt.getSource();
+		        if (evt.getClickCount() == 2) {
+		            // Double-click detected
+		            int index = list.locationToIndex(evt.getPoint());
+		            System.out.println(index);
+		            System.out.println(list.getSelectedValue().toString());
+		        } 
+		    }
+		});
+		
+		scrollPanel = new JScrollPane(m_groupList);
+		
+	    snsPanelRight.add(scrollPanel);
+		m_rightListPanel.add(snsPanelRight);
+		
+		m_rightListPanel.setVisible(false);
+		m_eastScroll.setVisible(false);
+				   
 		//add(westScroll);
 		getContentPane().add(m_westScroll, BorderLayout.WEST);
 
@@ -201,30 +246,40 @@ public class CMWinClient extends JFrame {
 			m_loginLogoutButton.setText("Login");
 			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
+			m_rightListPanel.setVisible(false);
+			m_eastScroll.setVisible(false);
 			break;
 		case CMInfo.CM_CONNECT:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Login");
 			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
+			m_rightListPanel.setVisible(false);
+			m_eastScroll.setVisible(false);
 			break;
 		case CMInfo.CM_LOGIN:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Logout");
 			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
+			m_rightListPanel.setVisible(false);
+			m_eastScroll.setVisible(false);
 			break;
 		case CMInfo.CM_SESSION_JOIN:
 			m_startStopButton.setText("Stop Client CM");
 			m_loginLogoutButton.setText("Logout");
 			m_leftListPanel.setVisible(true);
 			m_westScroll.setVisible(true);
+			m_rightListPanel.setVisible(true);
+			m_eastScroll.setVisible(true);
 			break;
 		default:
 			m_startStopButton.setText("Start Client CM");
 			m_loginLogoutButton.setText("Login");
 			m_leftListPanel.setVisible(false);
 			m_westScroll.setVisible(false);
+			m_rightListPanel.setVisible(false);
+			m_eastScroll.setVisible(false);
 			break;
 		}
 		revalidate();
