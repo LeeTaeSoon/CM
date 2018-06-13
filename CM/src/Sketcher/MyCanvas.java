@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class MyCanvas extends Canvas {
-	//처음에 까만색 점 안찍히게 하기 위해서 x,y -값 지정
+	
+	
 	int x=-50; int y=-50; int w=10; int h=10;
 	Color cr=Color.black;
 	Image background;
@@ -44,8 +45,40 @@ public class MyCanvas extends Canvas {
 		this.getGraphics().drawImage(background,0,0,null);
 		
 	}
+	public void setImage(String pathName) {
+		try {
+	        BufferedImage img = ImageIO.read(new File(pathName));
+	        img.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH);
+	        setImage(img);
+		}catch(Exception exception) {
+			exception.printStackTrace();
+		}
+        repaint();
+	}
 	public void addPoint() {
 		pointList.add(new Point(x,y,w,h,cr));
+	}
+	public void addPoint(Point p) {
+		pointList.add(p);
+	}
+	public void handleMessage(CanvasMessage msg) {
+		int msgType = msg.getType();
+		
+		switch(msgType) {
+		case CanvasMessage.CANVAS_DEFAULT:
+			System.out.println("Message Type not configured");
+			break;
+		case CanvasMessage.CANVAS_DRAW_POINT:
+			this.addPoint(msg.getPt());
+			break;
+		case CanvasMessage.CANVAS_CLEAR_ALL:
+			this.clearAll();
+			break;
+		case CanvasMessage.CANVAS_LOAD_PICTURE:
+			this.setImage(msg.getFilePath());
+			break;
+		}
+		repaint();
 	}
 	
 	@Override
