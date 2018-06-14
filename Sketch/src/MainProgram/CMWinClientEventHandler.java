@@ -404,6 +404,9 @@ public class CMWinClientEventHandler implements CMEventHandler{
 							, gInfo.getGroupPort()));
 				}
 			}
+			
+			if (!de.getUserName().equals(m_client.getMyName()))
+				m_client.SketchPanel.castTextMessage();
 			break;
 		case CMDataEvent.REMOVE_USER:
 			//System.out.println("["+de.getUserName()+"] leaves group("+de.getHandlerGroup()+") in session("

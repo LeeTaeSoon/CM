@@ -129,18 +129,15 @@ public class MyDrawing extends JPanel {
 			@Override
 			public void keyTyped(KeyEvent e) {
 				// TODO Auto-generated method stub
-				CanvasMessage msg = new CanvasMessage();
 				String text = slideNote.getText();
 				
 				if (e.getKeyChar() == '\b')
 					text = text.substring(0, text.length());
 				else
 					text = text + e.getKeyChar();
-
-				msg.setDataType(1);
+				
 				slideNote.setText(text);
-				msg.setText(slideNote.getText());
-				m_client.sendCanvasMessage(msg);
+				castTextMessage();
 			}
 			
 			@Override
@@ -153,6 +150,14 @@ public class MyDrawing extends JPanel {
 				// TODO Auto-generated method stub
 			}
 		});
+	}
+	public void castTextMessage() {
+		CanvasMessage msg = new CanvasMessage();
+		String text = slideNote.getText();
+		
+		msg.setDataType(1);
+		msg.setText(text);
+		m_client.sendCanvasMessage(msg);
 	}
 	public void saveTextArea(String txt_url) {
 		String text = slideNote.getText();
@@ -240,6 +245,7 @@ public class MyDrawing extends JPanel {
 			else if(o == PaintTool.btnBack) {
 				can2.clearAll();
 				can2.imagePath = null;
+				slideNote.setText("");
 				m_client.goLobby();
 				m_client.goBack();
 			}
