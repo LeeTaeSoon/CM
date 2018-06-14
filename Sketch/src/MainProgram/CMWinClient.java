@@ -50,6 +50,7 @@ public class CMWinClient extends JFrame {
 	private JTextField m_inTextField;
 	private JButton m_startStopButton;
 	private JButton m_loginLogoutButton;
+	private JButton m_registerButton;
 	private JPanel m_leftListPanel;
 	private JScrollPane m_westScroll;
 	private JList m_lobbyList;
@@ -140,6 +141,10 @@ public class CMWinClient extends JFrame {
 		m_loginLogoutButton = new JButton("Login");
 		m_loginLogoutButton.addActionListener(cmActionListener);
 		topButtonPanel.add(m_loginLogoutButton);
+		
+		m_registerButton = new JButton("Register");
+		m_registerButton.addActionListener(cmActionListener);
+		topButtonPanel.add(m_registerButton);
 		
 		m_leftListPanel = new JPanel();
 		m_leftListPanel.setBackground(new Color(220,220,220));
@@ -3811,6 +3816,10 @@ public class CMWinClient extends JFrame {
 			{
 				// logout from the default cm server
 				testLogoutDS();
+			}
+			else if(button.getText().equals("Register"))
+			{
+				testRegisterUser();
 			}
 //			else if(button.equals(m_composeSNSContentButton))
 //			{
