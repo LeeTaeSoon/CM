@@ -8,6 +8,8 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -122,6 +124,35 @@ public class MyDrawing extends JPanel {
 	}
 	public void initSlideNote() {
 		slideNote = new JTextArea(10,124);
+		slideNote.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				CanvasMessage msg = new CanvasMessage();
+				String text = slideNote.getText();
+				
+				if (e.getKeyChar() == '\b')
+					text = text.substring(0, text.length());
+				else
+					text = text + e.getKeyChar();
+
+				msg.setDataType(1);
+				slideNote.setText(text);
+				msg.setText(slideNote.getText());
+				m_client.sendCanvasMessage(msg);
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// TODO Auto-generated method stub
+			}
+		});
 	}
 	public void saveTextArea(String txt_url) {
 		String text = slideNote.getText();
@@ -137,7 +168,16 @@ public class MyDrawing extends JPanel {
 		}
 	}
 	public void receiveMessage(CanvasMessage msg) {
-		((MyCanvas)this.can).handleMessage(msg);
+		int dataType = msg.getDataType();
+		
+		if (dataType == 0)
+			((MyCanvas)this.can).handleMessage(msg);
+		else {
+			String str = msg.getText();
+			slideNote.setText(str);
+			
+			slideNote.setCaretPosition(slideNote.getText().length());
+		}
 	}
 	class ColorHandler implements ChangeListener{
 

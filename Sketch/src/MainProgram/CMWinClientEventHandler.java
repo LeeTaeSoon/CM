@@ -433,15 +433,8 @@ public class CMWinClientEventHandler implements CMEventHandler{
 		//printMessage("dummy msg: "+deserializeCanvasMsg(due.getDummyInfo()).toString()+"\n");
 		
 		CanvasMessage msg = deserializeCanvasMsg(due.getDummyInfo());
+		m_client.handleCanvasMessage(msg);
 		
-		int type = msg.getDataType();
-		
-		if (type == 0)
-			m_client.handleCanvasMessage(msg);
-		else {
-			//text
-		}
-			
 		return;
 	}
 	
