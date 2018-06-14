@@ -79,8 +79,9 @@ public class MyDrawing extends JPanel {
 	public void initUserList() {
 		userList = new JList();
 		userList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-		userList.setVisibleRowCount(40);
+		userList.setVisibleRowCount(35);
 		userList.setBorder(new TitledBorder(new LineBorder(Color.black, 2),"Current User"));
+		userList.setFixedCellWidth(100);
 		userList.setSize(new Dimension(100,600));
 	}
 	public void updateUserList() {
@@ -120,7 +121,7 @@ public class MyDrawing extends JPanel {
 		PaintTool.colorChooser.getSelectionModel().addChangeListener(new ColorHandler());
 	}
 	public void initSlideNote() {
-		slideNote = new JTextArea(10,140);
+		slideNote = new JTextArea(10,124);
 	}
 	public void saveTextArea(String txt_url) {
 		String text = slideNote.getText();
@@ -197,6 +198,7 @@ public class MyDrawing extends JPanel {
                 }
 			}
 			else if(o == PaintTool.btnBack) {
+				can2.clearAll();
 				m_client.goLobby();
 				m_client.goBack();
 			}
