@@ -89,7 +89,7 @@ public class CMWinClient extends JFrame {
 		setLayout(cardLayout);
 		MainPanel.setLayout(new BorderLayout());
 		MainPanel.add(SouthPanel, BorderLayout.SOUTH);
-		SouthPanel.setLayout(new BoxLayout(SouthPanel,BoxLayout.PAGE_AXIS));
+		SouthPanel.setLayout(new BoxLayout(SouthPanel, BoxLayout.PAGE_AXIS));
 		
 		this.add("Main", MainPanel);
 		this.add("Sketch", SketchPanel);
@@ -109,13 +109,20 @@ public class CMWinClient extends JFrame {
 		//centerScroll.setMaximumSize(SouthPanel.getPreferredSize());
 		//add(centerScroll);
 		//getContentPane().add(centerScroll, BorderLayout.CENTER);
+		m_outTextPane.setPreferredSize(new Dimension(0, 200));
 		SouthPanel.add(centerScroll);
+
 		//MainPanel.add(centerScroll, BorderLayout.CENTER);
 		
 		m_inTextField = new JTextField();
+		int temp = m_inTextField.getHeight();
+//		m_inTextField.setPreferredSize(new Dimension(0, 100));
 		//m_inTextField.setPreferredSize(SouthPanel.getSize());
 		m_inTextField.addKeyListener(cmKeyListener);
+
+//		m_inTextField.setSize(0, 50);
 		SouthPanel.add(m_inTextField);
+		SouthPanel.setPreferredSize(new Dimension(0, 200));
 		//MainPanel.add(m_inTextField, BorderLayout.SOUTH);
 		
 		JPanel topButtonPanel = new JPanel();
@@ -167,6 +174,8 @@ public class CMWinClient extends JFrame {
 		            System.out.println(index);
 		            System.out.println(list.getSelectedValue().toString());
 		            
+		            CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		            setTitle("CM Client ("+interInfo.getMyself().getName()+")"+ " - "+list.getSelectedValue().toString());
 		            changeGroup(list.getSelectedValue().toString());
 		            MaximizeFrame();
 		            cardLayout.next(getContentPane());
@@ -242,6 +251,10 @@ public class CMWinClient extends JFrame {
 	public void goBack() {
 		cardLayout.previous(getContentPane());
 		this.setSize(600, 600);
+		
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		setTitle("CM Client ("+interInfo.getMyself().getName()+")");
+
 	}
 	
 	private void addStylesToDocument(StyledDocument doc)
@@ -1176,14 +1189,14 @@ public class CMWinClient extends JFrame {
 	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 	        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
 	            oos.writeObject(msg);
-	            // serializedMsg -> 직렬화된 객체 
+	            // serializedMsg -> 吏곷젹�솕�맂 媛앹껜 
 	            serializedMsg = baos.toByteArray();
 	        }
 	    } catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    // 바이트 배열로 생성된 직렬화 데이터를 base64로 변환
+	    // 諛붿씠�듃 諛곗뿴濡� �깮�꽦�맂 吏곷젹�솕 �뜲�씠�꽣瑜� base64濡� 蹂��솚
 	    str = Base64.getEncoder().encodeToString(serializedMsg);
 		
 		return str;
@@ -1584,10 +1597,10 @@ public class CMWinClient extends JFrame {
 	}
 	
 	public void goLobby() {
-		// TODO : 지금까지 작성한 내용 서버로 업로드
+		// TODO : 吏�湲덇퉴吏� �옉�꽦�븳 �궡�슜 �꽌踰꾨줈 �뾽濡쒕뱶
 		
 		changeGroup("g1");
-		// TODO : 로비 화면 보여주기
+		// TODO : 濡쒕퉬 �솕硫� 蹂댁뿬二쇨린
 	}
 	
 	// ServerSocketChannel is not supported.
