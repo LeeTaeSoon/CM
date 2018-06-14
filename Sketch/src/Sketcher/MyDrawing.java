@@ -133,6 +133,8 @@ public class MyDrawing extends JPanel {
 				
 				if (e.getKeyChar() == '\b')
 					text = text.substring(0, text.length());
+				else if (e.getKeyChar() == '\n')
+				{}
 				else
 					text = text + e.getKeyChar();
 				
