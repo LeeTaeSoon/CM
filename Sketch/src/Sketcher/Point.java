@@ -17,4 +17,11 @@ public class Point implements Serializable {
 		this.h = h;
 		this.c = c;
 	}
+	public Point(Point p) {
+		this.x = p.x;
+		this.y = p.y;
+		this.w = p.w;
+		this.h = p.h;
+		this.c = p.c;
+	}
 }

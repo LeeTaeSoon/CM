@@ -42,7 +42,7 @@ public class MyDrawing extends JPanel {
     static final String TXT_EXT = ".txt";
 	
 	JPanel CanvasPanel;
-	Canvas can;
+	public MyCanvas can;
 	PaintToolFrame PaintTool;
 	JList userList;
 	JTextArea slideNote;
@@ -86,6 +86,8 @@ public class MyDrawing extends JPanel {
 	public void updateUserList() {
 		Object[] a = m_client.getGroupUsers().toArray();
 		userList.setListData(a);
+		
+				
 		revalidate();
 	}
 	public void initCanvas() {
@@ -165,7 +167,7 @@ public class MyDrawing extends JPanel {
 				can2.cr= can.getBackground();
 			}
 			else if(o==PaintTool.btAllClear){
-				can2.clearAll();
+				m_client.sendCanvasMessage(MyCanvas.makeCanvasClearMessage());
 			}
 			else if(o == PaintTool.btSave) {
                 String room_name = "canvas";

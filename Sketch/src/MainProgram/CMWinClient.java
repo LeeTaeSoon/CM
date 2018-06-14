@@ -19,6 +19,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 
 import Sketcher.CanvasMessage;
+import Sketcher.MyCanvas;
 import Sketcher.MyDrawing;
 import Sketcher.Point;
 import kr.ac.konkuk.ccslab.cm.entity.CMGroup;
@@ -67,7 +68,7 @@ public class CMWinClient extends JFrame {
 	
 	private CardLayout cardLayout;
 	private JPanel MainPanel;
-	private MyDrawing SketchPanel;
+	public MyDrawing SketchPanel;
 
 	CMWinClient()
 	{		
@@ -764,6 +765,10 @@ public class CMWinClient extends JFrame {
 		
 		showGroupMember();
 		showLobbyList();
+		MyCanvas myCanvas = (MyCanvas)SketchPanel.can;
+		CanvasMessage msg = MyCanvas.makeCanvasReloadMessage(myCanvas.imagePath,myCanvas.pointList);
+		sendCanvasMessage(msg);
+
 		SketchPanel.updateUserList();
 	}
 

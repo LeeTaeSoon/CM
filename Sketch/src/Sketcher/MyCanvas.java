@@ -17,8 +17,9 @@ public class MyCanvas extends Canvas {
 	
 	int x=-50; int y=-50; int w=10; int h=10;
 	Color cr=Color.black;
+	public String imagePath;
 	Image background;
-	ArrayList<Point> pointList;
+	public ArrayList<Point> pointList;
 	
 	//Graphics former_g;
 	
@@ -55,28 +56,43 @@ public class MyCanvas extends Canvas {
 		
 		return canMsg;
 	}
-	
-	public void setImage(Image img) {
-		this.clearAll();
+	public static CanvasMessage makeCanvasReloadMessage(String FilePath, ArrayList<Point> pt_list) {
+		CanvasMessage canMsg = new CanvasMessage();
+		canMsg.setFilePath(FilePath);
+		canMsg.setPtList(pt_list);
+		canMsg.setType(CanvasMessage.CANVAS_DRAW_ALL);
+		
+		return canMsg;
+	}
+	public static CanvasMessage makeCanvasClearMessage() {
+		CanvasMessage canMsg = new CanvasMessage();
+		canMsg.setType(CanvasMessage.CANVAS_CLEAR_ALL);
+		
+		return canMsg;
+	}
+		
+	public void setImage(Image img,String pathName) {
+		//this.clearAll();
+		this.imagePath = pathName;
 		this.background = img;
 		this.getGraphics().drawImage(background,0,0,null);
-		
 	}
 	public void setImage(String pathName) {
 		try {
+			this.imagePath = pathName;
 	        BufferedImage img = ImageIO.read(new File(pathName));
 	        img.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH);
-	        setImage(img);
+	        setImage(img,pathName);
 		}catch(Exception exception) {
 			exception.printStackTrace();
 		}
-        repaint();
+        //repaint();
 	}
 	public void addPoint() {
 		pointList.add(new Point(x,y,w,h,cr));
 	}
 	public void addPoint(Point p) {
-		pointList.add(p);
+		pointList.add(new Point(p));
 	}
 	public void handleMessage(CanvasMessage msg) {
 		int msgType = msg.getType();
@@ -92,7 +108,20 @@ public class MyCanvas extends Canvas {
 			this.clearAll();
 			break;
 		case CanvasMessage.CANVAS_LOAD_PICTURE:
+			this.clearAll();
 			this.setImage(msg.getFilePath());
+			break;
+		case CanvasMessage.CANVAS_DRAW_ALL:
+			if(msg.getPtList().size() > 0) {
+				this.pointList.clear();
+				ArrayList<Point> recvPtList = msg.getPtList();
+				for(int i = 0 ; i < recvPtList.size(); i++)
+					pointList.add(new Point(recvPtList.get(i).x,recvPtList.get(i).y,recvPtList.get(i).w,recvPtList.get(i).h,recvPtList.get(i).c));
+					//					this.addPoint(recvPtList.get(i));
+			}
+			if(msg.getFilePath() != null)
+				this.setImage(msg.getFilePath());
+			//repaint();
 			break;
 		}
 		repaint();
