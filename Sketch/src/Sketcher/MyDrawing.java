@@ -196,6 +196,7 @@ public class MyDrawing extends JPanel {
                 }
 			}
 			else if(o == PaintTool.btnBack) {
+				can2.clearAll();
 				m_client.goLobby();
 				m_client.goBack();
 			}
