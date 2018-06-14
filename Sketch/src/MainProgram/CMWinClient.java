@@ -3594,7 +3594,8 @@ public class CMWinClient extends JFrame {
 		}
 		*/
 		
-		String strMessage = JOptionPane.showInputDialog("Chat Message");
+//		String strMessage = JOptionPane.showInputDialog("Chat Message");
+		String strMessage = m_inTextField.getText();
 		if(strMessage == null) return;
 		
 		// make a CMInterestEvent.USER_TALK event
@@ -3608,6 +3609,7 @@ public class CMWinClient extends JFrame {
 		m_clientStub.multicast(ie, myself.getCurrentSession(), myself.getCurrentGroup());
 
 		ie = null;
+		m_inTextField.setText("");
 		return;
 	}
 	
@@ -3769,13 +3771,37 @@ public class CMWinClient extends JFrame {
 			int key = e.getKeyCode();
 			if(key == KeyEvent.VK_ENTER)
 			{
-				JTextField input = (JTextField)e.getSource();
-				String strText = input.getText();
-				printMessage(strText+"\n");
-				// parse and call CM API
-				processInput(strText);
-				input.setText("");
-				input.requestFocus();
+				CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+				CMConfigurationInfo confInfo = m_clientStub.getCMInfo().getConfigurationInfo();
+				//System.out.println("====== test multicast chat in current group");
+//				printMessage("====== test multicast chat in current group\n");
+
+				// check user state
+				CMUser myself = interInfo.getMyself();
+				
+				String strMessage = m_inTextField.getText();
+				if(strMessage == null) return;
+				
+				// make a CMInterestEvent.USER_TALK event
+				CMInterestEvent ie = new CMInterestEvent();
+				ie.setID(CMInterestEvent.USER_TALK);
+				ie.setHandlerSession(myself.getCurrentSession());
+				ie.setHandlerGroup(myself.getCurrentGroup());
+				ie.setUserName(myself.getName());
+				ie.setTalk(strMessage);
+				
+				m_clientStub.multicast(ie, myself.getCurrentSession(), myself.getCurrentGroup());
+
+				ie = null;
+				m_inTextField.setText("");
+				
+//				JTextField input = (JTextField)e.getSource();
+//				String strText = input.getText();
+//				printMessage(strText+"\n");
+//				// parse and call CM API
+//				processInput(strText);
+//				input.setText("");
+//				input.requestFocus();
 			}
 		}
 		
