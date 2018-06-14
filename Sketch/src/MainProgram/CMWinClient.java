@@ -157,7 +157,7 @@ public class CMWinClient extends JFrame {
 		MainPanel.add(m_eastScroll,BorderLayout.CENTER);
 		
 		Border lineBorderRight = BorderFactory.createLineBorder(Color.BLACK);
-		TitledBorder titledBorderRight = BorderFactory.createTitledBorder(lineBorderRight, "SNS");
+		TitledBorder titledBorderRight = BorderFactory.createTitledBorder(lineBorderRight, "Document List");
 		JPanel snsPanelRight = new JPanel();
 		snsPanelRight.setLayout(new BoxLayout(snsPanelRight, BoxLayout.Y_AXIS));
 		snsPanelRight.setBorder(titledBorderRight);
